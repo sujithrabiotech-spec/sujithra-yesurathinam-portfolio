@@ -236,9 +236,9 @@ export const copy = {
     title: "Learning across disciplines",
     intro: "My academic journey and practical skills bring biotechnology, laboratory practice, education, analytics, and communication together.",
     spotlight: {
-      label: "A THOUGHT ON DREAMING BIG",
-      quote: "Dream, dream, dream. Dreams transform into thoughts and thoughts result in action.",
-      attribution: "Dr. A. P. J. Abdul Kalam",
+      label: "A THOUGHT ON TURNING IDEAS INTO ACTION",
+      quote: "Curiosity asks the question; evidence shapes the answer; steady work carries it into the world.",
+      attribution: "Sujithra Yesurathinam",
     },
   },
   research: {
