@@ -64,7 +64,8 @@ export default async function handler(request, response) {
 
   try {
     const visits = await updateVisitorCount(method, config);
-    sendJson(response, 200, { visits }, method);
+    const milestone = method === "POST" && [50, 100].includes(visits) ? visits : null;
+    sendJson(response, 200, { visits, milestone }, method);
   } catch (error) {
     console.error("Could not update or read visitor count:", error);
     sendJson(response, 502, { error: "Could not update visitor count." }, method);

@@ -125,12 +125,15 @@ const server = createServer((request, response) => {
       ? request.method === "POST" ? incrementVisitorCount() : getVisitorCount()
       : Promise.resolve(0);
     getCount.then((visits) => {
+      const milestone = request.method === "POST" && publicRequest && [50, 100].includes(visits)
+        ? visits
+        : null;
       response.writeHead(200, {
         "Cache-Control": "no-store",
         "Content-Type": "application/json; charset=utf-8",
         "X-Content-Type-Options": "nosniff",
       });
-      response.end(request.method === "HEAD" ? undefined : JSON.stringify({ visits }));
+      response.end(request.method === "HEAD" ? undefined : JSON.stringify({ visits, milestone }));
     }).catch((error) => {
       console.error("Could not update or read visitor count:", error);
       if (!response.headersSent) response.writeHead(500);

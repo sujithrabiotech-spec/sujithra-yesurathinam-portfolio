@@ -68,6 +68,19 @@ function visitorBadge() {
   </aside>`;
 }
 
+function visitorMilestoneDialog() {
+  const confetti = Array.from({ length: 18 }, (_, index) => `<span style="--ribbon-index:${index}"></span>`).join("");
+  return `<dialog class="milestone-dialog" id="visitor-milestone" aria-labelledby="visitor-milestone-title" aria-describedby="visitor-milestone-message">
+    <div class="milestone-confetti" aria-hidden="true">${confetti}</div>
+    <div class="milestone-content">
+      <span class="milestone-eyebrow">A MOMENT TO CELEBRATE</span>
+      <h2 id="visitor-milestone-title">A little milestone!</h2>
+      <p id="visitor-milestone-message"></p>
+      <button class="milestone-close" type="button">Keep exploring</button>
+    </div>
+  </dialog>`;
+}
+
 function photo() {
   return `
     <div class="portrait-wrap">
@@ -525,7 +538,6 @@ function initContactForm() {
 function initResumeDownload() {
   const button = document.querySelector("#resume-download");
   if (!button) return;
-  if (button.hidden) return;
 
   const options = document.querySelectorAll("[data-resume-mode]");
   const panels = document.querySelectorAll("[data-resume-panel]");
@@ -564,6 +576,16 @@ function initVisitorCounter() {
   const output = document.querySelector("#visitor-count");
   if (!badge || !output) return;
   const visitSessionKey = "portfolio-visit-counted-v2";
+  const milestoneDialog = document.querySelector("#visitor-milestone");
+  const closeMilestoneDialog = milestoneDialog?.querySelector(".milestone-close");
+
+  closeMilestoneDialog?.addEventListener("click", () => milestoneDialog.close());
+  milestoneDialog?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      milestoneDialog.close();
+    }
+  });
 
   const footer = document.querySelector(".site-footer");
   if (footer) {
@@ -615,6 +637,16 @@ function initVisitorCounter() {
       throw new Error("Visitor counter returned an invalid total.");
     }
     animateCount(data.visits);
+    if (isNewBrowsingSession && [50, 100].includes(data.milestone)) {
+      const message = data.milestone === 50
+        ? "We’ve reached 50 visits! Thank you for being one of the first to explore my portfolio."
+        : "100 visits — what a lovely milestone! Thank you for visiting and supporting my journey.";
+      const milestoneMessage = milestoneDialog?.querySelector("#visitor-milestone-message");
+      if (milestoneMessage && typeof milestoneDialog?.showModal === "function" && !milestoneDialog.open) {
+        milestoneMessage.textContent = message;
+        milestoneDialog.showModal();
+      }
+    }
   }).catch((error) => {
     console.error("Could not load the website visit count:", error);
     if (isNewBrowsingSession) {
@@ -675,6 +707,7 @@ root.innerHTML = `<span class="reading-thread" aria-hidden="true"></span>${heade
   </main>
     ${pageArrows()}
     ${visitorBadge()}
+    ${visitorMilestoneDialog()}
     ${footer()}`;
 document.title = page === "resume" ? `${profile.name} | Short Resume` : page === "home" ? `${profile.name} | Ideas into Action` : `${details.title} | ${profile.name}`;
 initNavigation();
