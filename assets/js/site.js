@@ -563,6 +563,7 @@ function initVisitorCounter() {
   const badge = document.querySelector("#visitor-badge");
   const output = document.querySelector("#visitor-count");
   if (!badge || !output) return;
+  const visitSessionKey = "portfolio-visit-counted-v2";
 
   const footer = document.querySelector(".site-footer");
   if (footer) {
@@ -592,10 +593,10 @@ function initVisitorCounter() {
     window.requestAnimationFrame(frame);
   };
 
-  let isNewBrowsingSession = false;
+  let isNewBrowsingSession = true;
   try {
-    isNewBrowsingSession = sessionStorage.getItem("portfolio-visit-counted") !== "true";
-    if (isNewBrowsingSession) sessionStorage.setItem("portfolio-visit-counted", "true");
+    isNewBrowsingSession = sessionStorage.getItem(visitSessionKey) !== "true";
+    if (isNewBrowsingSession) sessionStorage.setItem(visitSessionKey, "true");
   } catch (error) {
     console.error("Could not determine whether this browsing session was already counted:", error);
   }
@@ -616,9 +617,16 @@ function initVisitorCounter() {
     animateCount(data.visits);
   }).catch((error) => {
     console.error("Could not load the website visit count:", error);
+    if (isNewBrowsingSession) {
+      try {
+        sessionStorage.removeItem(visitSessionKey);
+      } catch (storageError) {
+        console.error("Could not reset the visitor counter session marker:", storageError);
+      }
+    }
     badge.hidden = false;
     badge.classList.add("visitor-badge-unavailable");
-    badge.title = "The site visitor counter is unavailable. It requires the Node.js site server.";
+    badge.title = "The site visitor counter is unavailable. Check the server or Redis configuration.";
     output.textContent = "—";
     output.setAttribute("aria-label", "Visit count unavailable");
   });
