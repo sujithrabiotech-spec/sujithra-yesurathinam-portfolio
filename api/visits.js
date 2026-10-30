@@ -9,8 +9,8 @@ function sendJson(response, status, data, method) {
 }
 
 function getRedisConfig() {
-  const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN;
   return url && token ? { url, token } : null;
 }
 
@@ -57,7 +57,7 @@ export default async function handler(request, response) {
 
   const config = getRedisConfig();
   if (!config) {
-    console.error("Visitor counter is not configured. Set KV_REST_API_URL and KV_REST_API_TOKEN.");
+    console.error("Visitor counter is not configured. Connect Upstash Redis or set its REST URL and token.");
     sendJson(response, 503, { error: "Visitor counter storage is not configured." }, method);
     return;
   }

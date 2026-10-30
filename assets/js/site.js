@@ -307,7 +307,6 @@ function projects() {
 }
 
 function resumePage() {
-  const localResumeExport = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
   const careerItems = experience.map((entry) => `<article class="resume-experience-item">
     <div class="resume-item-heading"><h3>${escapeHtml(entry.title)}</h3><span>${escapeHtml(entry.date)}</span></div>
     <p class="resume-organization">${escapeHtml(entry.organization)}</p>
@@ -340,7 +339,7 @@ function resumePage() {
           <button class="resume-switch-option is-selected" type="button" data-resume-mode="short" aria-pressed="true">Short <span>01</span></button>
           <button class="resume-switch-option" type="button" data-resume-mode="detailed" aria-pressed="false">Detailed <span>02</span></button>
         </div>
-      <button class="resume-download" id="resume-download" type="button" aria-label="Print or save the short resume as PDF"${localResumeExport ? "" : " hidden"}>
+      <button class="resume-download" id="resume-download" type="button" aria-label="Print or save the short resume as PDF">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span>Save short PDF</span>
       </button>
@@ -394,7 +393,7 @@ function resumePage() {
         <footer class="resume-footer"><span>${escapeHtml(profile.name)}</span><span>Detailed portfolio: ${window.location.origin}</span></footer>
       </article>
     </section>
-    <p class="resume-print-note">${localResumeExport ? "Choose a profile, then use Save PDF to create a copy. The detailed profile includes your full academic, research, and project record." : "Both resume formats are available to view. PDF export is available from your private local portfolio copy."}</p>
+    <p class="resume-print-note">Choose a profile, then select Save PDF and choose “Save as PDF” in your browser’s print dialog. The detailed profile includes your full academic, research, and project record.</p>
   </div>`;
 }
 
