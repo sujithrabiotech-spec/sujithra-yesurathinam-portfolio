@@ -61,26 +61,6 @@ function pageArrows() {
   return `<nav class="page-arrows" aria-label="Previous and next portfolio pages">${arrow(previous, "previous")}${arrow(next, "next")}</nav>`;
 }
 
-function visitorBadge() {
-  return `<aside class="visitor-badge" id="visitor-badge" aria-label="Website visitor counter" title="One count per browsing session; moving between pages does not add another visit." hidden>
-    <span class="visitor-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.2-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.2 6.5-9.5 6.5S2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.5"/><path d="m18.5 4 .8 1.7L21 6.5l-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8.8-1.7Z" fill="currentColor"/></svg><span></span></span>
-    <span class="visitor-copy"><span class="visitor-label">SITE VISITORS</span><strong id="visitor-count" aria-live="polite">—</strong></span>
-  </aside>`;
-}
-
-function visitorMilestoneDialog() {
-  const confetti = Array.from({ length: 18 }, (_, index) => `<span style="--ribbon-index:${index}"></span>`).join("");
-  return `<dialog class="milestone-dialog" id="visitor-milestone" aria-labelledby="visitor-milestone-title" aria-describedby="visitor-milestone-message">
-    <div class="milestone-confetti" aria-hidden="true">${confetti}</div>
-    <div class="milestone-content">
-      <span class="milestone-eyebrow">A MOMENT TO CELEBRATE</span>
-      <h2 id="visitor-milestone-title">A little milestone!</h2>
-      <p id="visitor-milestone-message"></p>
-      <button class="milestone-close" type="button">Keep exploring</button>
-    </div>
-  </dialog>`;
-}
-
 function photo() {
   return `
     <div class="portrait-wrap">
@@ -570,99 +550,6 @@ function initImageProtection() {
   });
 }
 
-function initVisitorCounter() {
-  const badge = document.querySelector("#visitor-badge");
-  const output = document.querySelector("#visitor-count");
-  if (!badge || !output) return;
-  const visitSessionKey = "portfolio-visit-counted-v2";
-  const milestoneDialog = document.querySelector("#visitor-milestone");
-  const closeMilestoneDialog = milestoneDialog?.querySelector(".milestone-close");
-
-  closeMilestoneDialog?.addEventListener("click", () => milestoneDialog.close());
-  milestoneDialog?.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      event.preventDefault();
-      milestoneDialog.close();
-    }
-  });
-
-  const footer = document.querySelector(".site-footer");
-  if (footer) {
-    const updateFooterOverlap = () => {
-      const bounds = footer.getBoundingClientRect();
-      badge.classList.toggle("is-footer-visible", bounds.top < window.innerHeight && bounds.bottom > 0);
-    };
-    window.addEventListener("scroll", updateFooterOverlap, { passive: true });
-    window.addEventListener("resize", updateFooterOverlap);
-    updateFooterOverlap();
-  }
-
-  const animateCount = (count) => {
-    badge.hidden = false;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      output.textContent = count.toLocaleString("en-IN");
-      return;
-    }
-    const duration = 1000;
-    const start = performance.now();
-    const frame = (now) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - (1 - progress) ** 3;
-      output.textContent = Math.round(count * eased).toLocaleString("en-IN");
-      if (progress < 1) window.requestAnimationFrame(frame);
-    };
-    window.requestAnimationFrame(frame);
-  };
-
-  let isNewBrowsingSession = true;
-  try {
-    isNewBrowsingSession = sessionStorage.getItem(visitSessionKey) !== "true";
-    if (isNewBrowsingSession) sessionStorage.setItem(visitSessionKey, "true");
-  } catch (error) {
-    console.error("Could not determine whether this browsing session was already counted:", error);
-  }
-
-  fetch("/api/visits", {
-    method: isNewBrowsingSession ? "POST" : "GET",
-    ...(isNewBrowsingSession ? {
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    } : {}),
-    cache: "no-store",
-  }).then(async (response) => {
-    if (!response.ok) throw new Error(`Visitor counter returned HTTP ${response.status}.`);
-    const data = await response.json();
-    if (!Number.isSafeInteger(data.visits) || data.visits < 0) {
-      throw new Error("Visitor counter returned an invalid total.");
-    }
-    animateCount(data.visits);
-    if (isNewBrowsingSession && [50, 100].includes(data.milestone)) {
-      const message = data.milestone === 50
-        ? "We’ve reached 50 visits! Thank you for being one of the first to explore my portfolio."
-        : "100 visits — what a lovely milestone! Thank you for visiting and supporting my journey.";
-      const milestoneMessage = milestoneDialog?.querySelector("#visitor-milestone-message");
-      if (milestoneMessage && typeof milestoneDialog?.showModal === "function" && !milestoneDialog.open) {
-        milestoneMessage.textContent = message;
-        milestoneDialog.showModal();
-      }
-    }
-  }).catch((error) => {
-    console.error("Could not load the website visit count:", error);
-    if (isNewBrowsingSession) {
-      try {
-        sessionStorage.removeItem(visitSessionKey);
-      } catch (storageError) {
-        console.error("Could not reset the visitor counter session marker:", storageError);
-      }
-    }
-    badge.hidden = false;
-    badge.classList.add("visitor-badge-unavailable");
-    badge.title = "The site visitor counter is unavailable. Check the server or Redis configuration.";
-    output.textContent = "—";
-    output.setAttribute("aria-label", "Visit count unavailable");
-  });
-}
-
 function initMotion() {
   const targets = document.querySelectorAll(".content-section, .content-section:not(.home-focus-section) .info-card, .timeline-item, .qualification-entry, .certificate-card, .spotlight, .contact-introduction, .message-panel, .resume-toolbar, .story-copy p, .editorial-list li, .working-signature li, .working-signature-close, .career-company-feature, .execution-map, .skills-map, .legacy-note, .work-philosophy, .resume-heading, .resume-section, .resume-footer");
   if (!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -705,8 +592,6 @@ root.innerHTML = `<span class="reading-thread" aria-hidden="true"></span>${heade
     ${spotlight()}
   </main>
     ${pageArrows()}
-    ${visitorBadge()}
-    ${visitorMilestoneDialog()}
     ${footer()}`;
 document.title = page === "resume" ? `${profile.name} | Short Resume` : page === "home" ? `${profile.name} | Ideas into Action` : `${details.title} | ${profile.name}`;
 initNavigation();
@@ -714,6 +599,5 @@ initSwipeNavigation();
 initContactForm();
 initResumeDownload();
 initImageProtection();
-initVisitorCounter();
 initMotion();
 initReadingThread();
